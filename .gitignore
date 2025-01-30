@@ -1,0 +1,6 @@
+# Ignore the saved models
+models/
+
+# Ignore the bkse, motionblur
+bkse/
+motionblur/

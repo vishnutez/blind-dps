@@ -165,10 +165,24 @@ class BlindBlurOperator(LinearOperator):
     def apply_kernel(self, data, kernel):
         #TODO: faster way to apply conv?:W
         
-        b_img = torch.zeros_like(data).to(self.device)
-        for i in range(3):
-            b_img[:, i, :, :] = F.conv2d(data[:, i:i+1, :, :], kernel, padding='same')
-        return b_img
+        # b_img = torch.zeros_like(data).to(self.device)
+
+        # for i in range(3):
+        #     b_img[:, i, :, :] = F.conv2d(data[:, i:i+1, :, :], kernel, padding='same')
+        # return b_img
+
+        k_size = kernel.shape[-1]
+        C_in = data.shape[1]  # RGB channels, typically 3
+
+        k_expanded = kernel.expand(C_in, 1, k_size, k_size) 
+        print('k_expanded shape = ', k_expanded.shape)
+
+        out_img = F.conv2d(data, k_expanded, groups=C_in, padding='same')
+        print('out_img shape = ', out_img.shape)
+
+        return out_img
+
+        
 
 @register_operator(name='turbulence')
 class TurbulenceOperator(LinearOperator):
