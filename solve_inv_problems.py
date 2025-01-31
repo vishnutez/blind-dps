@@ -131,6 +131,8 @@ def main():
         fname = str(i).zfill(5) + '.png'
         ref_img = ref_img.to(device)
 
+        # print('ref_img shape = ', ref_img.shape)
+
         if args.kernel == 'motion':
             kernel = Kernel(size=(args.kernel_size, args.kernel_size), intensity=args.intensity).kernelMatrix
             kernel = torch.from_numpy(kernel).type(torch.float32)
@@ -144,9 +146,9 @@ def main():
         y = operator.forward(ref_img, kernel)
         y_n = noiser(y)
 
-        print('ref_img shape = ', ref_img.shape)
-        print('kernel shape = ', kernel.shape)
-        print('y shape = ', y.shape)
+        # print('ref_img shape = ', ref_img.shape)
+        # print('kernel shape = ', kernel.shape)
+        # print('y shape = ', y.shape)
 
 
         # Generate a random image xs and get ys from the measurement model

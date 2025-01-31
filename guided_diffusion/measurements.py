@@ -175,10 +175,10 @@ class BlindBlurOperator(LinearOperator):
         C_in = data.shape[1]  # RGB channels, typically 3
 
         k_expanded = kernel.expand(C_in, 1, k_size, k_size) 
-        print('k_expanded shape = ', k_expanded.shape)
+        # print('k_expanded shape = ', k_expanded.shape)
 
         out_img = F.conv2d(data, k_expanded, groups=C_in, padding='same')
-        print('out_img shape = ', out_img.shape)
+        # print('out_img shape = ', out_img.shape)
 
         return out_img
 

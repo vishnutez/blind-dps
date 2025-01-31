@@ -1,0 +1,28 @@
+name: semiblind-dps
+channels:
+  - pytorch
+  - nvidia
+  - defaults
+dependencies:
+  - pip
+  - pip:
+    - certifi
+    - charset-normalizer
+    - contourpy
+    - cycler
+    - fonttools
+    - idna
+    - kiwisolver
+    - matplotlib
+    - numpy
+    - packaging
+    - Pillow
+    - pyparsing
+    - python-dateutil
+    - PyYAML
+    - requests
+    - scipy
+    - six
+    - tqdm
+    - typing-extensions
+    - urllib3

@@ -47,8 +47,6 @@ class SemiblindConditioningMethod(BlindConditioningMethod):
             keys = sorted(x_prev.keys())
             x_prev_values = [x[1] for x in sorted(x_prev.items())] 
             x_0_hat_values = [x[1] for x in sorted(x_0_hat.items())]
-
-            # print('x_0_hat_values:', x_0_hat_values)
             
             difference = measurement - self.operator.forward(*x_0_hat_values)
             blind_norm = torch.linalg.norm(difference)
@@ -59,10 +57,10 @@ class SemiblindConditioningMethod(BlindConditioningMethod):
             xs = kwargs.get('xs', None)
 
             if xs is not None and ys is not None:
-                print('Driving the diffusion with additional guidance from the guidance samples.')
+                guidance_scale = kwargs.get('guidance_scale', 1.0)
+                print('guidance scale = ', guidance_scale)
                 sample_difference = ys - self.operator.forward(xs, x_0_hat['kernel'])
-                norm = blind_norm + torch.linalg.norm(sample_difference)
-                print('x_0_hat_values[1]:', x_0_hat_values[1].shape)
+                norm = blind_norm + guidance_scale * torch.linalg.norm(sample_difference)
             else:
                 print('No ys, xs, just using the blind DPS.')
                 norm = blind_norm

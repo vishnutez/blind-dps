@@ -9,7 +9,7 @@ conditioning:
 
 data:
   name: ffhq
-  root: ././data/ffhq256/
+  root: ../data/ffhq256/
   # root: ./data/samples/
 
 measurement:

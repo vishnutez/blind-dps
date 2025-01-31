@@ -370,7 +370,7 @@ class DDPM(SpacedDiffusion):
         if t != 0:  # no noise when t == 0
             noisy_sample = sample + torch.exp(0.5 * out['log_variance']) * noise
         else:
-            noisy_sample = sample + noise * t
+            noisy_sample = sample + noise * t  # TODO fix this as it seems wrong
 
         return {'sample': noisy_sample, 'pred_xstart': out['pred_xstart']}
     
@@ -455,12 +455,19 @@ class BlindDPS(DDPM):
             # while we reported the result with a constant scale in the paper.
             scale = torch.from_numpy(self.sqrt_alphas_cumprod).to(time.device)[time].float()
             scale = {k: scale for k in output.keys()}
+
+            # Cosine schedule for the guidance scale
+
+            M, m = 0.5, 0.02
+            guidance_scale = M + (m-M) * torch.cos((time.float() / self.num_timesteps) * math.pi / 2)
+
             updated, norm = measurement_cond_fn(x_t=x_t,
                                                 measurement=measurement,
                                                 noisy_measurement=noisy_measurement,
                                                 x_prev=x_prev,
                                                 x_0_hat=x_0_hat,
-                                                scale=scale)
+                                                scale=scale,
+                                                guidance_scale=guidance_scale)
             
             updated = dict((k, v.detach_()) for k, v in updated.items())
             x_prev = updated
