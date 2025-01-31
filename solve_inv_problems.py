@@ -120,7 +120,7 @@ def main():
     dataset = get_dataset(**data_config, transforms=transform)
 
     subset = Subset(dataset, range(args.n_gen_samples))
-    loader = get_dataloader(subset, batch_size=1, num_workers=0, train=False) 
+    loader = get_dataloader(subset, batch_size=args.n_gen_samples, num_workers=0, train=False) 
 
     # set seed for reproduce
     np.random.seed(123)
@@ -134,17 +134,30 @@ def main():
         # print('ref_img shape = ', ref_img.shape)
 
         if args.kernel == 'motion':
-            kernel = Kernel(size=(args.kernel_size, args.kernel_size), intensity=args.intensity).kernelMatrix
-            kernel = torch.from_numpy(kernel).type(torch.float32)
-            kernel = kernel.to(device).view(1, 1, args.kernel_size, args.kernel_size)
+            kernels = []
+            for i in range(ref_img.shape[0]):
+                kernel = Kernel(size=(args.kernel_size, args.kernel_size), intensity=args.intensity).kernelMatrix
+                kernels.append(torch.from_numpy(kernel).type(torch.float32))
+            kernel = torch.stack(kernels).to(device).view(ref_img.shape[0], 1, args.kernel_size, args.kernel_size)
+
         elif args.kernel == 'gaussian':
-            conv = Blurkernel('gaussian', kernel_size=args.kernel_size, device=device)
-            kernel = conv.get_kernel().type(torch.float32)
-            kernel = kernel.to(device).view(1, 1, args.kernel_size, args.kernel_size)
+            kernels = []
+            for i in range(ref_img.shape[0]):
+                kernel = Blurkernel('gaussian', kernel_size=args.kernel_size, device=device).get_kernel().type(torch.float32)
+                kernels.append(kernel)
+            kernel = torch.stack(kernels).to(device).view(ref_img.shape[0], 1, args.kernel_size, args.kernel_size)
+
+        print('kernel shape = ', kernel.shape)
+        print('ref_img shape = ', ref_img.shape)
         
         # Forward measurement model (Ax + n)
         y = operator.forward(ref_img, kernel)
         y_n = noiser(y)
+
+        for i, img in enumerate(y_n):
+            # print('img shape = ', img.shape)
+            plt.imsave(os.path.join(out_path, 'input', f'batched_{i}_{fname}'), clear_color(img.unsqueeze(0)))
+
 
         # print('ref_img shape = ', ref_img.shape)
         # print('kernel shape = ', kernel.shape)

@@ -162,25 +162,67 @@ class BlindBlurOperator(LinearOperator):
     def transpose(self, data, **kwargs):
         return data
     
-    def apply_kernel(self, data, kernel):
-        #TODO: faster way to apply conv?:W
-        
-        # b_img = torch.zeros_like(data).to(self.device)
+    # def apply_kernel(self, data, kernel):
 
-        # for i in range(3):
-        #     b_img[:, i, :, :] = F.conv2d(data[:, i:i+1, :, :], kernel, padding='same')
-        # return b_img
+    #      #TODO: faster way to apply conv?:W BlindDPS original implementation
+
+    #     b_img = torch.zeros_like(data).to(self.device)
+
+    #     for i in range(3):
+    #         b_img[:, i, :, :] = F.conv2d(data[:, i:i+1, :, :], kernel, padding='same')
+    #     return b_img
+    
+    
+    
+    # def apply_kernel(self, data, kernel):
+
+    #     # Our implementation for batch_size of generated images is 1
+
+    #     k_size = kernel.shape[-1]
+    #     C_in = data.shape[1]  # RGB channels, typically 3
+
+    #     k_expanded = kernel.expand(C_in, 1, k_size, k_size) 
+    #     # print('k_expanded shape = ', k_expanded.shape)
+
+    #     out_img = F.conv2d(data, k_expanded, groups=C_in, padding='same')
+    #     # print('out_img shape = ', out_img.shape)
+
+    #     return out_img
+    
+
+    def apply_kernel(self, data, kernel):
+
+        """
+        :param data: input image tensor of shape (batch_size, channels, height, width)
+        :param kernel: kernel tensor of shape (batch_size, 1, kernel_size, kernel_size)
+        """
+
+        # Our implementation to accomodate batch_size of generated images >= 1
 
         k_size = kernel.shape[-1]
         C_in = data.shape[1]  # RGB channels, typically 3
+        batch_size = data.shape[0]
+        H, W = data.shape[-2], data.shape[-1]
 
-        k_expanded = kernel.expand(C_in, 1, k_size, k_size) 
-        # print('k_expanded shape = ', k_expanded.shape)
+        kernel_ = kernel.unsqueeze(1)  # (batch_size, 1, 1, kernel_size, kernel_size)
+        print('kernel_ shape = ', kernel_.shape)
 
-        out_img = F.conv2d(data, k_expanded, groups=C_in, padding='same')
-        # print('out_img shape = ', out_img.shape)
+        k_expanded = kernel_.expand(batch_size, C_in, 1, k_size, k_size) # (batch_size, C_in, 1, kernel_size, kernel_size)
+        print('k_expanded shape = ', k_expanded.shape)
 
-        return out_img
+        k_grouped = k_expanded.reshape(batch_size * C_in, 1, k_size, k_size) # (batch_size * C_in, 1, kernel_size, kernel_size)
+        print('k_grouped shape = ', k_grouped.shape)
+
+        data_grouped = data.reshape(1, batch_size * C_in, H, W)
+        print('data_grouped shape = ', data_grouped.shape)
+
+        out_grouped = F.conv2d(data_grouped, k_grouped, groups=batch_size * C_in, padding='same')
+
+        out = out_grouped.reshape(batch_size, C_in, H, W)
+        
+        print('out shape = ', out.shape)
+
+        return out
 
         
 

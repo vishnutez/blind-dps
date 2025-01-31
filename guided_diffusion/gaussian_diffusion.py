@@ -367,7 +367,7 @@ class DDPM(SpacedDiffusion):
         sample = out['mean']
 
         noise = torch.randn_like(x)
-        if t != 0:  # no noise when t == 0
+        if t.all() != 0:  # no noise when t == 0
             noisy_sample = sample + torch.exp(0.5 * out['log_variance']) * noise
         else:
             noisy_sample = sample + noise * t  # TODO fix this as it seems wrong
@@ -427,6 +427,8 @@ class BlindDPS(DDPM):
         pbar = tqdm(list(range(self.num_timesteps))[::-1])
         for idx in pbar:
             time = torch.tensor([idx] * batch_size, device=device)
+
+            print('time = ', time)
 
             x_prev = dict((k, v.requires_grad_()) for k, v in x_prev.items())
             
