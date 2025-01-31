@@ -205,22 +205,22 @@ class BlindBlurOperator(LinearOperator):
         H, W = data.shape[-2], data.shape[-1]
 
         kernel_ = kernel.unsqueeze(1)  # (batch_size, 1, 1, kernel_size, kernel_size)
-        print('kernel_ shape = ', kernel_.shape)
+        # print('kernel_ shape = ', kernel_.shape)
 
         k_expanded = kernel_.expand(batch_size, C_in, 1, k_size, k_size) # (batch_size, C_in, 1, kernel_size, kernel_size)
-        print('k_expanded shape = ', k_expanded.shape)
+        # print('k_expanded shape = ', k_expanded.shape)
 
         k_grouped = k_expanded.reshape(batch_size * C_in, 1, k_size, k_size) # (batch_size * C_in, 1, kernel_size, kernel_size)
-        print('k_grouped shape = ', k_grouped.shape)
+        # print('k_grouped shape = ', k_grouped.shape)
 
         data_grouped = data.reshape(1, batch_size * C_in, H, W)
-        print('data_grouped shape = ', data_grouped.shape)
+        # print('data_grouped shape = ', data_grouped.shape)
 
         out_grouped = F.conv2d(data_grouped, k_grouped, groups=batch_size * C_in, padding='same')
 
         out = out_grouped.reshape(batch_size, C_in, H, W)
-        
-        print('out shape = ', out.shape)
+
+        # print('out shape = ', out.shape)
 
         return out
 

@@ -147,16 +147,15 @@ def main():
                 kernels.append(kernel)
             kernel = torch.stack(kernels).to(device).view(ref_img.shape[0], 1, args.kernel_size, args.kernel_size)
 
-        print('kernel shape = ', kernel.shape)
-        print('ref_img shape = ', ref_img.shape)
-        
+
         # Forward measurement model (Ax + n)
         y = operator.forward(ref_img, kernel)
         y_n = noiser(y)
 
-        for i, img in enumerate(y_n):
-            # print('img shape = ', img.shape)
-            plt.imsave(os.path.join(out_path, 'input', f'batched_{i}_{fname}'), clear_color(img.unsqueeze(0)))
+        print('kernel shape = ', kernel.shape)
+        print('ref_img shape = ', ref_img.shape)
+
+        
 
 
         # print('ref_img shape = ', ref_img.shape)
@@ -204,11 +203,20 @@ def main():
         # sample 
         sample = sample_fn(x_start=x_start, measurement=y_n, record=False, save_root=out_path)
 
-        plt.imsave(os.path.join(out_path, 'input', fname), clear_color(y_n))
-        plt.imsave(os.path.join(out_path, 'label', 'ker_'+fname), clear_color(kernel))
-        plt.imsave(os.path.join(out_path, 'label', 'img_'+fname), clear_color(ref_img))
-        plt.imsave(os.path.join(out_path, 'recon', 'img_'+fname), clear_color(sample['img']))
-        plt.imsave(os.path.join(out_path, 'recon', 'ker_'+fname), clear_color(sample['kernel']))
+        print('Saving the generated images... in batch')
+
+        for i in range(len(ref_img)):
+            plt.imsave(os.path.join(out_path, 'input', f'batched_{i}_{fname}'), clear_color(y_n[i].unsqueeze(0)))
+            plt.imsave(os.path.join(out_path, 'label', f'batched_{i}_ker_'+fname), clear_color(kernel[i].unsqueeze(0)))
+            plt.imsave(os.path.join(out_path, 'label', f'batched_{i}_img_'+fname), clear_color(ref_img[i].unsqueeze(0)))
+            plt.imsave(os.path.join(out_path, 'recon', f'batched_{i}_img_'+fname), clear_color(sample['img'][i].unsqueeze(0)))
+            plt.imsave(os.path.join(out_path, 'recon', f'batched_{i}_ker_'+fname), clear_color(sample['kernel'][i].unsqueeze(0)))
+
+        # plt.imsave(os.path.join(out_path, 'input', fname), clear_color(y_n))
+        # plt.imsave(os.path.join(out_path, 'label', 'ker_'+fname), clear_color(kernel))
+        # plt.imsave(os.path.join(out_path, 'label', 'img_'+fname), clear_color(ref_img))
+        # plt.imsave(os.path.join(out_path, 'recon', 'img_'+fname), clear_color(sample['img']))
+        # plt.imsave(os.path.join(out_path, 'recon', 'ker_'+fname), clear_color(sample['kernel']))
 
 if __name__ == '__main__':
     main()

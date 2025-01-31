@@ -49,7 +49,12 @@ class SemiblindConditioningMethod(BlindConditioningMethod):
             x_0_hat_values = [x[1] for x in sorted(x_0_hat.items())]
             
             difference = measurement - self.operator.forward(*x_0_hat_values)
+
+            # print('In condition methods, difference = ', difference.shape)
+
             blind_norm = torch.linalg.norm(difference)
+
+            # print('Blind norm = ', blind_norm)
 
             # Additional guidance from ys, xs
 
@@ -76,6 +81,9 @@ class SemiblindConditioningMethod(BlindConditioningMethod):
                         norm = norm + reg_scale * torch.linalg.norm(x_0_hat[reg_target].view(-1), ord=reg_ord)                        
                     
             norm_grad = torch.autograd.grad(outputs=norm, inputs=x_prev_values)
+
+            # print('keys = ', keys)
+            # print('norm_grad img shape = ', norm_grad[0].shape, 'norm_grad kernel shape = ', norm_grad[1].shape)
             
         else:
             raise NotImplementedError
@@ -95,8 +103,16 @@ class PosteriorSampling(SemiblindConditioningMethod):
         scale = kwargs.get('scale')
         if scale is None:
             scale = self.scale
+
+        print('x_t = ', x_t['img'].shape, x_t['kernel'].shape)
+        print('norm_grad = ', norm_grad['img'].shape, norm_grad['kernel'].shape)
+        print('scale = ', scale['img'], scale['kernel'])
          
+        
+
         keys = sorted(x_prev.keys())
+
+        print('keys = ', keys)
         for k in keys:
             x_t.update({k: x_t[k] - scale[k]*norm_grad[k]})            
         

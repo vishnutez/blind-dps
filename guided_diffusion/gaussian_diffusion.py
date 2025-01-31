@@ -426,7 +426,9 @@ class BlindDPS(DDPM):
         
         pbar = tqdm(list(range(self.num_timesteps))[::-1])
         for idx in pbar:
-            time = torch.tensor([idx] * batch_size, device=device)
+            # time = torch.tensor([idx] * batch_size, device=device)
+
+            time = torch.tensor([idx] * 1, device=device)
 
             print('time = ', time)
 
